@@ -1,0 +1,165 @@
+<html>
+	<head>
+		<title>Timer app</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+	</head>
+	<body>
+		<h1> Timer </h1>
+		<div style="padding-right:20px; float:left">
+			<form style="display:inline-block" onsubmit="return false">
+				<input autofocus id="howlong" type="number" min="1" max="60" step="1" value="20">
+				<button id=start>Start</button>
+				<button id=pause style="width:80px" disabled=disabled>Pause</button>
+				<button id=reset>Reset</button>
+			</form>
+			<span id="timer" style="display:none"></span>
+		</div>
+
+<svg viewbox="0 0 512 512" style="background:#eee; border-radius:10px;
+	max-width:400px; width:100%">
+  <circle cx=256 cy=256 r=250 fill="#fff" ></circle>
+  <circle cx=256 cy=256 r=50 fill="#eee" ></circle>
+  <circle id="centralpart" cx=256 cy=256 r=30 fill="red" ></circle>
+  <path id="startPath" fill="transparent" stroke="red"></path>
+  <path id="timerPath" fill="red" stroke="red"></path>
+</svg>
+<script type="text/javascript">
+
+	var howlong= document.getElementById('howlong');
+	var startBtn=document.getElementById('start');
+	var pauseBtn=document.getElementById('pause');
+	var resetBtn=document.getElementById('reset');
+	var timer=document.getElementById('timer');
+	var startPath=document.getElementById('startPath');
+	var timerPath=document.getElementById('timerPath');
+	var centralpart = document.getElementById('centralpart');
+		var remainingTime =false;
+    var divisor;
+	var timeout=false;
+	var endTime=false;
+		var paused=false;
+	function startClock()
+	{
+		if(howlong.valueAsNumber>60 || howlong.valueAsNumber<1)
+			return;
+		pause.removeAttribute('disabled');
+		endTime = Date.parse(new Date());
+		endTime+=(howlong.valueAsNumber*60*1000);
+        divisor=(howlong.valueAsNumber*60*1000);
+        if(divisor<(60*60)*1000)
+            divisor=60*60*1000;
+
+		var now = Date.parse(new Date());
+        var portion = 359.9*((endTime - now )/ divisor);
+
+        var path = describeArc(256, 256, 50, 230, 0, portion);
+        startPath.setAttribute('d',path);
+		updateClock();
+	}
+	function pad(i)
+	{
+		return i.toString().padStart(2,'0');
+	}
+	function finished()
+	{
+		centralpart.setAttribute('fill','green');
+		pause.innerHTML='Pause';
+		pause.setAttribute('disabled','disabled');
+	}
+	function updateClock()
+	{
+		if(timeout)
+			timeout=clearTimeout(timeout);
+		var now = Date.parse(new Date());
+		var remainSeconds = (endTime - now) /1000;
+		var hours = Math.floor(remainSeconds / 3600);
+		var mins = Math.floor((remainSeconds %3600) / 60);
+		var seconds = remainSeconds %60;
+			timer.innerHTML= pad(hours)+':'+pad(mins)+':'+pad(seconds);
+            if(remainSeconds<=0){
+               finished();
+                return;
+             }
+
+        var portion = 359.9*((endTime - now )/ divisor);
+        var path = describeArc(256, 256, 50, 230, 0, portion);
+        timerPath.setAttribute('d',path);
+		centralpart.setAttribute('fill','red');
+        timeout=setTimeout(function() {updateClock()}, 1000);
+	}
+
+	startBtn.addEventListener('click', function() {
+		startClock();
+	});
+	function toggleClock()
+	{
+		var now = Date.parse(new Date());
+		if(!paused)
+		{
+			timeout=clearTimeout(timeout);
+			pause.innerHTML='Unpause';
+			paused=true;
+				remainingTime = endTime-now;
+		}
+		else
+		{
+			paused=false;
+			endTime = now+remainingTime;
+			pause.innerHTML='Pause';
+			updateClock();
+		}
+	}
+	pauseBtn.addEventListener('click',function (){ toggleClock(); });
+
+	function resetClock()
+	{
+		timeout=clearTimeout(timeout);
+		timer.innerHTML='';
+		startPath.setAttribute('d','');
+		timerPath.setAttribute('d','');
+		centralpart.setAttribute('fill','red');
+		pause.innerHTML='Pause';
+		pause.setAttribute('disabled','disabled');
+	}
+	resetBtn.addEventListener('click',function (){ resetClock(); });
+ window.onbeforeunload = confirmExit;
+
+    function confirmExit() {
+		if(timeout)
+	        return "You have attempted to leave this page. Are you sure?";
+		return true;
+    }
+
+function describeArc(x, y, innerRadius, outerRadius, startAngle, endAngle){
+
+    var radius = innerRadius;
+    var spread = outerRadius - innerRadius;
+    var innerStart = polarToCartesian(x, y, radius, endAngle);
+  	var innerEnd = polarToCartesian(x, y, radius, startAngle);
+    var outerStart = polarToCartesian(x, y, radius + spread, endAngle);
+    var outerEnd = polarToCartesian(x, y, radius + spread, startAngle);
+
+    var largeArcFlag = endAngle - startAngle <= 180 ? "0" : "1";
+
+    var d = [
+        "M", outerStart.x, outerStart.y,
+        "A", radius + spread, radius + spread, 0, largeArcFlag, 0, outerEnd.x, outerEnd.y,
+        "L", innerEnd.x, innerEnd.y,
+        "A", radius, radius, 0, largeArcFlag, 1, innerStart.x, innerStart.y,
+        "L", outerStart.x, outerStart.y, "Z"
+    ].join(" ");
+
+    return d;
+}
+
+function polarToCartesian(centerX, centerY, radius, angleInDegrees) {
+  var angleInRadians = (angleInDegrees-90) * Math.PI / 180.0;
+
+  return {
+    x: centerX + (radius * Math.cos(angleInRadians)),
+    y: centerY + (radius * Math.sin(angleInRadians))
+  };
+}
+</script>
+</body>
+</html>

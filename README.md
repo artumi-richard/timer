@@ -9,5 +9,5 @@ It doesn't show a clock, but a slowly reducing area of red.
 
 The middle spot goes green when the timer is over.
 
-![screenshot](screenshots/desktop.png)
+![screenshot](screenshot/desktop.png)
 
